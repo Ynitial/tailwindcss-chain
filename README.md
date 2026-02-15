@@ -107,6 +107,46 @@ The variant prefix is everything up to and including the last colon before the f
 </div>
 ```
 
+## Laravel Blade Setup
+
+For Laravel Blade templates, the Vite plugin alone is not enough. Blade files are server-rendered by PHP and read from disk by Tailwind -- they never pass through Vite's transform pipeline. You need an additional **Blade precompiler** to expand chains at compile time.
+
+Add this to your `AppServiceProvider`:
+
+```php
+use Illuminate\Support\Facades\Blade;
+
+public function boot(): void
+{
+    Blade::precompiler(function (string $content) {
+        return preg_replace_callback(
+            '/((?:(?:[\w-]+|\[[^\]]*\]):)+)((?:[^\s\'"|]+\|)+[^\s\'"|]+)/',
+            function ($matches) {
+                $prefix = $matches[1];
+                $utilities = explode('|', $matches[2]);
+
+                return implode(' ', array_map(fn ($u) => $prefix . $u, $utilities));
+            },
+            $content
+        );
+    });
+}
+```
+
+Then clear your compiled views so Blade picks up the precompiler:
+
+```bash
+php artisan view:clear
+```
+
+**Why is this needed?** Tailwind v4's Vite plugin reads template files directly from disk for class scanning, and Laravel renders Blade on the server. The Blade precompiler expands chains at compile time, so both the HTML output and Tailwind's scanner (via compiled views in `storage/framework/views/`) see the expanded classes.
+
+**Tip:** Make sure your CSS includes a `@source` for compiled views so Tailwind picks up the expanded classes:
+
+```css
+@source '../../storage/framework/views/*.php';
+```
+
 ## How It Works
 
 `tailwindcss-chain` is a Vite plugin that transforms your source files at build time:
@@ -117,11 +157,14 @@ The variant prefix is everything up to and including the last colon before the f
 
 This means there is **zero runtime cost**. All expansion happens during the build step, and your production bundle contains only standard Tailwind classes.
 
-**Supported file types:** `.js`, `.jsx`, `.ts`, `.tsx`, `.html`, `.vue`, `.svelte`, `.astro`, `.md`, `.mdx`, `.blade.php`, `.php`
+**Supported file types (Vite transform):** `.js`, `.jsx`, `.ts`, `.tsx`, `.html`, `.vue`, `.svelte`, `.astro`, `.md`, `.mdx`, `.blade.php`, `.php`
+
+**Server-rendered templates (Blade, etc.):** Require the additional precompiler step described above, since these files are not part of Vite's module graph.
 
 ## Limitations
 
 - **Vite only.** This is a Vite plugin. It does not work with webpack, Parcel, or other bundlers.
+- **Server-rendered templates need extra setup.** Laravel Blade (and other server-rendered templates) require a precompiler because Tailwind reads these files from disk, not through Vite's transform pipeline. See the [Laravel Blade Setup](#laravel-blade-setup) section.
 - **No pipes inside bracket expressions within a chain.** The pipe character inside square brackets (e.g., arbitrary values like `[color:red|blue]`) is treated as bracket content, not a chain separator. This is by design to avoid ambiguity with CSS selectors and arbitrary values that may contain `|`.
 
 ## License

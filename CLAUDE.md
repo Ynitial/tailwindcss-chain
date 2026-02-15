@@ -28,13 +28,25 @@ Two source files, clear separation:
   - Skips `node_modules`
   - Re-exports `expandChainedClasses` for direct use
 
+## Laravel Blade Integration
+
+The Vite `transform` hook does NOT work for Blade templates because:
+1. Tailwind v4's `@tailwindcss/vite` reads template files directly from disk, not through Vite's transform pipeline
+2. Laravel renders Blade on the server from the original source files
+
+For Blade support, users must add a **Blade precompiler** in their `AppServiceProvider` that expands chain syntax at compile time. This handles both:
+- **HTML output**: Laravel renders expanded classes to the browser
+- **CSS generation**: Compiled views (in `storage/framework/views/`) contain expanded classes, and Tailwind scans them via `@source '../../storage/framework/views/*.php'`
+
+The precompiler uses a PHP regex equivalent of the JS expansion logic. See README for the exact code.
+
 ## Key Design Decisions
 
 - **Pipe `|` as separator** -- chosen over underscore (conflicts with some Tailwind utilities) and semicolon (less readable)
 - **Bracket-aware parsing** -- all string operations track `[]` nesting depth so pipes inside arbitrary values like `bg-[url(a|b)]` are not treated as separators
 - **Attribute-aware expansion** -- `expandChainedClasses` matches `attr="value"` patterns to correctly expand chains inside HTML/JSX attributes, not just bare whitespace-delimited tokens
 - **No expansion without variant prefix** -- `bg-red-500|text-white` (no variant prefix) is intentionally left unchanged; only `variant:util1|util2` triggers expansion
-- **Build-time only** -- zero runtime cost, all expansion happens during Vite's transform phase
+- **Build-time only** -- zero runtime cost, all expansion happens during Vite's transform phase (or Blade compile time for Laravel)
 
 ## Testing
 

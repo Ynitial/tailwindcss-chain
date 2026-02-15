@@ -59,6 +59,30 @@ export default defineConfig({
 
 .js, .jsx, .ts, .tsx, .html, .vue, .svelte, .astro, .md, .mdx, .blade.php, .php
 
+## Laravel Blade
+
+The Vite plugin alone is not sufficient for Laravel Blade templates. Blade files are server-rendered by PHP and read directly from disk by Tailwind's scanner -- they bypass Vite's transform pipeline entirely.
+
+Users must add a Blade precompiler in their `AppServiceProvider`:
+
+```php
+use Illuminate\Support\Facades\Blade;
+
+Blade::precompiler(function (string $content) {
+    return preg_replace_callback(
+        '/((?:(?:[\w-]+|\[[^\]]*\]):)+)((?:[^\s\'"|]+\|)+[^\s\'"|]+)/',
+        function ($matches) {
+            $prefix = $matches[1];
+            $utilities = explode('|', $matches[2]);
+            return implode(' ', array_map(fn ($u) => $prefix . $u, $utilities));
+        },
+        $content
+    );
+});
+```
+
+After adding, run `php artisan view:clear`. The CSS file should include `@source '../../storage/framework/views/*.php'` so Tailwind picks up the expanded classes from compiled views.
+
 ## API
 
 The package exports two things:
@@ -69,6 +93,7 @@ The package exports two things:
 ## Limitations
 
 - Vite only (not webpack, Parcel, or other bundlers)
+- Server-rendered templates (Laravel Blade, etc.) require an additional precompiler -- the Vite plugin alone is not enough
 - Pipe inside square brackets within a chain is treated as bracket content, not a separator
 
 ## Links
