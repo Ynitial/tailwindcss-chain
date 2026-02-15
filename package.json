@@ -1,6 +1,6 @@
 {
   "name": "tailwindcss-chain",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A Vite plugin that lets you chain multiple Tailwind CSS utilities under a shared variant prefix using pipe syntax",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -13,18 +13,27 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
     "test:watch": "vitest",
     "prepublishOnly": "npm run build"
   },
-  "keywords": ["tailwindcss", "vite", "plugin", "variant", "chain", "group"],
+  "keywords": [
+    "tailwindcss",
+    "vite",
+    "plugin",
+    "variant",
+    "chain",
+    "group"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Ynitial/tailwindcss-chain"
+    "url": "git+https://github.com/Ynitial/tailwindcss-chain.git"
   },
   "peerDependencies": {
     "vite": ">=5.0.0"
