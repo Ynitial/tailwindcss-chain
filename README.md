@@ -166,6 +166,7 @@ This means there is **zero runtime cost**. All expansion happens during the buil
 - **Vite only.** This is a Vite plugin. It does not work with webpack, Parcel, or other bundlers.
 - **Server-rendered templates need extra setup.** Laravel Blade (and other server-rendered templates) require a precompiler because Tailwind reads these files from disk, not through Vite's transform pipeline. See the [Laravel Blade Setup](#laravel-blade-setup) section.
 - **No pipes inside bracket expressions within a chain.** The pipe character inside square brackets (e.g., arbitrary values like `[color:red|blue]`) is treated as bracket content, not a chain separator. This is by design to avoid ambiguity with CSS selectors and arbitrary values that may contain `|`.
+- **JS/TS files: attribute patterns only.** In `.js`, `.jsx`, `.ts`, and `.tsx` files, chains are only expanded inside attribute patterns like `className="hover:a|b"`. Pipes in regular JS code (bitwise OR, `classList.add(...)`, etc.) are left untouched. If you need to add classes at runtime via JS, use the expanded form: `classList.add('hover:a', 'hover:b')`.
 
 ## License
 

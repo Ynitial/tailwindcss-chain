@@ -88,13 +88,14 @@ After adding, run `php artisan view:clear`. The CSS file should include `@source
 The package exports two things:
 
 - `default export: tailwindcssChain()` -- Vite plugin factory function
-- `named export: expandChainedClasses(content: string): string` -- the pure transform function, for use outside Vite
+- `named export: expandChainedClasses(content: string, options?: { attributeOnly?: boolean }): string` -- the pure transform function, for use outside Vite. Use `attributeOnly: true` for JS/TS content to avoid mangling JS code.
 
 ## Limitations
 
 - Vite only (not webpack, Parcel, or other bundlers)
 - Server-rendered templates (Laravel Blade, etc.) require an additional precompiler -- the Vite plugin alone is not enough
 - Pipe inside square brackets within a chain is treated as bracket content, not a separator
+- In JS/TS files, chains only expand inside attribute patterns (`className="hover:a|b"`), not in bare JS code like `classList.add('hover:a|b')` -- use expanded classes for runtime JS
 
 ## Links
 

@@ -26,6 +26,7 @@ Two source files, clear separation:
   - `enforce: 'pre'` so it runs before Tailwind's Vite plugin
   - Filters by file extension (jsx, tsx, html, vue, svelte, astro, md, mdx, blade.php, php)
   - Skips `node_modules`
+  - Uses `attributeOnly` mode for JS/TS files to avoid mangling JS code (only expands inside `attr="..."` patterns)
   - Re-exports `expandChainedClasses` for direct use
 
 ## Laravel Blade Integration
@@ -45,14 +46,15 @@ The precompiler uses a PHP regex equivalent of the JS expansion logic. See READM
 - **Pipe `|` as separator** -- chosen over underscore (conflicts with some Tailwind utilities) and semicolon (less readable)
 - **Bracket-aware parsing** -- all string operations track `[]` nesting depth so pipes inside arbitrary values like `bg-[url(a|b)]` are not treated as separators
 - **Attribute-aware expansion** -- `expandChainedClasses` matches `attr="value"` patterns to correctly expand chains inside HTML/JSX attributes, not just bare whitespace-delimited tokens
+- **Script-safe mode** -- JS/TS files use `attributeOnly` mode so pipes in JS code (bitwise OR, `classList.add(...)`, etc.) are never mangled; only `attr="..."` patterns are expanded in script files
 - **No expansion without variant prefix** -- `bg-red-500|text-white` (no variant prefix) is intentionally left unchanged; only `variant:util1|util2` triggers expansion
 - **Build-time only** -- zero runtime cost, all expansion happens during Vite's transform phase (or Blade compile time for Laravel)
 
 ## Testing
 
 Tests are in `tests/` using Vitest:
-- `tests/expand.test.ts` -- 28 tests for the core expansion logic (helpers + expandChainedClasses)
-- `tests/plugin.test.ts` -- 12 tests for the Vite plugin (file type filtering, node_modules skip, null on no-change)
+- `tests/expand.test.ts` -- 33 tests for the core expansion logic (helpers + expandChainedClasses + attributeOnly mode)
+- `tests/plugin.test.ts` -- 15 tests for the Vite plugin (file type filtering, node_modules skip, null on no-change, JS safety)
 
 When adding new features, write the test first (TDD). Test edge cases around bracket nesting and variant prefix parsing.
 

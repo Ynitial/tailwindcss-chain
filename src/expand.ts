@@ -77,7 +77,16 @@ function expandToken(token: string): string {
   return utilities.map(u => prefix + u).join(' ')
 }
 
-export function expandChainedClasses(content: string): string {
+export function expandChainedClasses(content: string, options?: { attributeOnly?: boolean }): string {
+  if (options?.attributeOnly) {
+    // Only expand inside attribute="value" patterns — safe for JS/TS files
+    // where bare tokens like classList.add('variant:a|b') must not be mangled
+    return content.replace(/\w+=(['"])([^'"]*)\1/g, (match, quote, inner) => {
+      const attrPrefix = match.slice(0, match.indexOf(quote))
+      const expanded = inner.replace(/\S+/g, (tok: string) => expandToken(tok))
+      return attrPrefix + quote + expanded + quote
+    })
+  }
   // Match attribute="value" patterns, then bare tokens
   return content.replace(/\w+=(['"])([^'"]*)\1|\S+/g, (match, quote, inner) => {
     if (quote) {

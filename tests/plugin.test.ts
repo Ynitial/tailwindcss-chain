@@ -12,9 +12,26 @@ describe('Vite plugin', () => {
     expect(plugin.enforce).toBe('pre')
   })
 
-  it('transforms tsx files', () => {
-    const result = plugin.transform('hover:bg-red-500|text-white', 'app.tsx')
-    expect(result.code).toBe('hover:bg-red-500 hover:text-white')
+  it('transforms jsx attributes in tsx files', () => {
+    const result = plugin.transform('className="hover:bg-red-500|text-white"', 'app.tsx')
+    expect(result.code).toBe('className="hover:bg-red-500 hover:text-white"')
+  })
+
+  it('transforms jsx attributes in js files', () => {
+    const result = plugin.transform('className="hover:bg-red-500|text-white"', 'app.js')
+    expect(result.code).toBe('className="hover:bg-red-500 hover:text-white"')
+  })
+
+  it('does not mangle JS code with pipes in ts files', () => {
+    const code = "document.querySelector('main').classList.add('hover:bg-red-500|scale-110')"
+    const result = plugin.transform(code, 'app.ts')
+    expect(result).toBeNull()
+  })
+
+  it('does not mangle JS code with pipes in js files', () => {
+    const code = "const x = a | b"
+    const result = plugin.transform(code, 'app.js')
+    expect(result).toBeNull()
   })
 
   it('transforms html files', () => {

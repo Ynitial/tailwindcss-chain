@@ -133,3 +133,32 @@ describe('expandChainedClasses', () => {
       .toBe('hover:bg-red-500')
   })
 })
+
+describe('expandChainedClasses with attributeOnly', () => {
+  it('expands inside attribute values', () => {
+    expect(expandChainedClasses('className="hover:a|b"', { attributeOnly: true }))
+      .toBe('className="hover:a hover:b"')
+  })
+
+  it('does not expand bare tokens', () => {
+    expect(expandChainedClasses('hover:a|b', { attributeOnly: true }))
+      .toBe('hover:a|b')
+  })
+
+  it('does not mangle JS classList code', () => {
+    const code = "document.querySelector('main').classList.add('hover:bg-red-500|scale-110')"
+    expect(expandChainedClasses(code, { attributeOnly: true }))
+      .toBe(code)
+  })
+
+  it('does not mangle JS bitwise or expressions', () => {
+    const code = 'const x = a | b'
+    expect(expandChainedClasses(code, { attributeOnly: true }))
+      .toBe(code)
+  })
+
+  it('expands multiple attributes', () => {
+    expect(expandChainedClasses('class="hover:a|b" id="x" data="md:c|d"', { attributeOnly: true }))
+      .toBe('class="hover:a hover:b" id="x" data="md:c md:d"')
+  })
+})
