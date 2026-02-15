@@ -1,0 +1,77 @@
+# tailwindcss-chain
+
+> A Vite plugin that lets you chain multiple Tailwind CSS utilities under a shared variant prefix using pipe (`|`) syntax.
+
+## What It Does
+
+Tailwind CSS requires repeating variant prefixes for each utility class:
+
+```
+md:hover:bg-blue-600 md:hover:text-white md:hover:scale-105
+```
+
+With tailwindcss-chain, write this instead:
+
+```
+md:hover:bg-blue-600|text-white|scale-105
+```
+
+The plugin expands the chained syntax back to standard Tailwind classes at build time, with zero runtime cost.
+
+## Syntax
+
+```
+variant:util1|util2|util3  ->  variant:util1 variant:util2 variant:util3
+```
+
+The variant prefix is everything up to and including the last colon before the first utility. Stacked variants work naturally:
+
+- `hover:a|b` -> `hover:a hover:b`
+- `md:hover:a|b` -> `md:hover:a md:hover:b`
+- `md:max-lg:a|b` -> `md:max-lg:a md:max-lg:b`
+- `[&>div]:a|b` -> `[&>div]:a [&>div]:b`
+
+Pipes inside square brackets are ignored (bracket-aware parsing), so `bg-[url(a|b)]` is left untouched.
+
+Tokens without a variant prefix are not expanded: `bg-red-500|text-white` stays as-is.
+
+## Installation
+
+```
+npm install tailwindcss-chain
+```
+
+## Setup
+
+```ts
+// vite.config.ts
+import tailwindcssChain from 'tailwindcss-chain'
+import tailwindCSS from '@tailwindcss/vite'
+
+export default defineConfig({
+  plugins: [tailwindcssChain(), tailwindCSS()]
+})
+```
+
+`tailwindcssChain()` must come before `tailwindCSS()`. It uses Vite's `enforce: 'pre'` to transform source files before Tailwind scans for classes.
+
+## Supported File Types
+
+.js, .jsx, .ts, .tsx, .html, .vue, .svelte, .astro, .md, .mdx, .blade.php, .php
+
+## API
+
+The package exports two things:
+
+- `default export: tailwindcssChain()` -- Vite plugin factory function
+- `named export: expandChainedClasses(content: string): string` -- the pure transform function, for use outside Vite
+
+## Limitations
+
+- Vite only (not webpack, Parcel, or other bundlers)
+- Pipe inside square brackets within a chain is treated as bracket content, not a separator
+
+## Links
+
+- Repository: https://github.com/Ynitial/tailwindcss-chain
+- License: MIT
