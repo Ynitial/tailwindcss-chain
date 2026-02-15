@@ -3,7 +3,7 @@ import { expandChainedClasses } from './expand'
 
 export { expandChainedClasses } from './expand'
 
-const FILE_REGEX = /\.(jsx?|tsx?|html|vue|svelte|astro|mdx?)$/
+const FILE_REGEX = /\.(jsx?|tsx?|html|vue|svelte|astro|mdx?|blade\.php|php)$/
 
 export default function tailwindcssChain(): Plugin {
   return {

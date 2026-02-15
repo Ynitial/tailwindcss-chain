@@ -37,6 +37,16 @@ describe('Vite plugin', () => {
     expect(result.code).toBe('hover:bg-red-500 hover:text-white')
   })
 
+  it('transforms blade.php files', () => {
+    const result = plugin.transform('hover:bg-red-500|text-white', 'resources/views/welcome.blade.php')
+    expect(result.code).toBe('hover:bg-red-500 hover:text-white')
+  })
+
+  it('transforms php files', () => {
+    const result = plugin.transform('hover:bg-red-500|text-white', 'resources/views/page.php')
+    expect(result.code).toBe('hover:bg-red-500 hover:text-white')
+  })
+
   it('skips css files', () => {
     const result = plugin.transform('hover:bg-red-500|text-white', 'style.css')
     expect(result).toBeNull()

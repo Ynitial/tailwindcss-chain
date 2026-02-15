@@ -117,7 +117,7 @@ The variant prefix is everything up to and including the last colon before the f
 
 This means there is **zero runtime cost**. All expansion happens during the build step, and your production bundle contains only standard Tailwind classes.
 
-**Supported file types:** `.js`, `.jsx`, `.ts`, `.tsx`, `.html`, `.vue`, `.svelte`, `.astro`, `.md`, `.mdx`
+**Supported file types:** `.js`, `.jsx`, `.ts`, `.tsx`, `.html`, `.vue`, `.svelte`, `.astro`, `.md`, `.mdx`, `.blade.php`, `.php`
 
 ## Limitations
 
