@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { hasPipeOutsideBrackets, splitOnPipe, splitVariantPrefix } from '../src/expand'
+import { hasPipeOutsideBrackets, splitOnPipe, splitVariantPrefix, expandChainedClasses } from '../src/expand'
 
 describe('hasPipeOutsideBrackets', () => {
   it('returns true when pipe is outside brackets', () => {
@@ -64,5 +64,72 @@ describe('splitVariantPrefix', () => {
 
   it('handles arbitrary value in utility', () => {
     expect(splitVariantPrefix('md:bg-[#f00]')).toEqual({ prefix: 'md:', rest: 'bg-[#f00]' })
+  })
+})
+
+describe('expandChainedClasses', () => {
+  it('expands simple variant chain', () => {
+    expect(expandChainedClasses('hover:bg-red-500|text-white'))
+      .toBe('hover:bg-red-500 hover:text-white')
+  })
+
+  it('expands stacked variant chain', () => {
+    expect(expandChainedClasses('md:hover:bg-red-500|text-white'))
+      .toBe('md:hover:bg-red-500 md:hover:text-white')
+  })
+
+  it('expands range variant chain', () => {
+    expect(expandChainedClasses('md:max-lg:bg-red-500|scale-110'))
+      .toBe('md:max-lg:bg-red-500 md:max-lg:scale-110')
+  })
+
+  it('expands three utilities', () => {
+    expect(expandChainedClasses('hover:a|b|c'))
+      .toBe('hover:a hover:b hover:c')
+  })
+
+  it('handles arbitrary values', () => {
+    expect(expandChainedClasses('md:bg-[#f00]|text-white'))
+      .toBe('md:bg-[#f00] md:text-white')
+  })
+
+  it('ignores pipe inside brackets', () => {
+    expect(expandChainedClasses('bg-[url(a|b)]'))
+      .toBe('bg-[url(a|b)]')
+  })
+
+  it('does not expand without variant prefix', () => {
+    expect(expandChainedClasses('bg-red-500|text-white'))
+      .toBe('bg-red-500|text-white')
+  })
+
+  it('passes through normal classes', () => {
+    expect(expandChainedClasses('md:bg-red-500 text-white'))
+      .toBe('md:bg-red-500 text-white')
+  })
+
+  it('handles negative values', () => {
+    expect(expandChainedClasses('hover:-translate-x-4|opacity-50'))
+      .toBe('hover:-translate-x-4 hover:opacity-50')
+  })
+
+  it('expands multiple chains in one string', () => {
+    expect(expandChainedClasses('hover:a|b md:c|d'))
+      .toBe('hover:a hover:b md:c md:d')
+  })
+
+  it('handles arbitrary variant prefix', () => {
+    expect(expandChainedClasses('[&>div]:text-red|font-bold'))
+      .toBe('[&>div]:text-red [&>div]:font-bold')
+  })
+
+  it('preserves content around class strings', () => {
+    expect(expandChainedClasses('class="hover:a|b" other'))
+      .toBe('class="hover:a hover:b" other')
+  })
+
+  it('handles single utility with variant (no expansion needed)', () => {
+    expect(expandChainedClasses('hover:bg-red-500'))
+      .toBe('hover:bg-red-500')
   })
 })

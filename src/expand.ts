@@ -64,3 +64,28 @@ export function splitVariantPrefix(token: string): { prefix: string; rest: strin
     rest: token.slice(lastVariantEnd),
   }
 }
+
+function expandToken(token: string): string {
+  if (!hasPipeOutsideBrackets(token)) return token
+
+  const { prefix, rest } = splitVariantPrefix(token)
+  if (!prefix) return token
+
+  const utilities = splitOnPipe(rest)
+  if (utilities.length <= 1) return token
+
+  return utilities.map(u => prefix + u).join(' ')
+}
+
+export function expandChainedClasses(content: string): string {
+  // Match attribute="value" patterns, then bare tokens
+  return content.replace(/\w+=(['"])([^'"]*)\1|\S+/g, (match, quote, inner) => {
+    if (quote) {
+      // Inside an attribute value: expand each whitespace-delimited token
+      const attrPrefix = match.slice(0, match.indexOf(quote))
+      const expanded = inner.replace(/\S+/g, (tok: string) => expandToken(tok))
+      return attrPrefix + quote + expanded + quote
+    }
+    return expandToken(match)
+  })
+}
